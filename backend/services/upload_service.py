@@ -34,3 +34,4 @@ async def save_uploaded_file(file: UploadFile):
         "stored_filename": filename,
         "content_type": file.content_type,
     }
+    
