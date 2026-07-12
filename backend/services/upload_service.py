@@ -2,7 +2,6 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session
 from pathlib import Path
 import shutil
-
 from backend.models.upload_model import Upload
 from backend.utils.file_utils import (
     UPLOAD_DIR,
@@ -16,6 +15,7 @@ async def save_uploaded_file(
     file: UploadFile,
     db: Session,
 ):
+
 
     validate_content_type(file.content_type)
 
@@ -50,3 +50,9 @@ async def save_uploaded_file(
         "content_type": upload.content_type,
         "status": upload.status,
     }
+def get_all_uploads(db):
+    return (
+        db.query(Upload)
+        .order_by(Upload.upload_time.desc())
+        .all()
+    )
