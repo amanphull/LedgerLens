@@ -1,26 +1,25 @@
 from pathlib import Path
 import shutil
 
-from fastapi import HTTPException, UploadFile
+from fastapi import UploadFile
 
 from backend.utils.file_utils import (
     UPLOAD_DIR,
     generate_unique_filename,
+    validate_content_type,
+    validate_file_size,
 )
 
 
 async def save_uploaded_file(file: UploadFile):
 
-    allowed_types = [
-        "image/jpeg",
-        "image/png",
-    ]
+    validate_content_type(file.content_type)
 
-    if file.content_type not in allowed_types:
-        raise HTTPException(
-            status_code=400,
-            detail="Only JPG and PNG images are allowed.",
-        )
+    content = await file.read()
+
+    validate_file_size(len(content))
+
+    file.file.seek(0)
 
     filename = generate_unique_filename(file.filename)
 

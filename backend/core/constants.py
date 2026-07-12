@@ -1,0 +1,8 @@
+ALLOWED_CONTENT_TYPES = [
+    "image/jpeg",
+    "image/png",
+]
+
+MAX_UPLOAD_SIZE_MB = 10
+
+MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
