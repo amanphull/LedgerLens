@@ -1,8 +1,9 @@
+from fastapi import UploadFile
+from sqlalchemy.orm import Session
 from pathlib import Path
 import shutil
 
-from fastapi import UploadFile
-
+from backend.models.upload_model import Upload
 from backend.utils.file_utils import (
     UPLOAD_DIR,
     generate_unique_filename,
@@ -11,7 +12,10 @@ from backend.utils.file_utils import (
 )
 
 
-async def save_uploaded_file(file: UploadFile):
+async def save_uploaded_file(
+    file: UploadFile,
+    db: Session,
+):
 
     validate_content_type(file.content_type)
 
@@ -28,10 +32,21 @@ async def save_uploaded_file(file: UploadFile):
     with file_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    upload = Upload(
+        original_filename=file.filename,
+        stored_filename=filename,
+        content_type=file.content_type,
+    )
+
+    db.add(upload)
+    db.commit()
+    db.refresh(upload)
+
     return {
         "message": "Upload Successful",
-        "original_filename": file.filename,
-        "stored_filename": filename,
-        "content_type": file.content_type,
+        "id": upload.id,
+        "original_filename": upload.original_filename,
+        "stored_filename": upload.stored_filename,
+        "content_type": upload.content_type,
+        "status": upload.status,
     }
-    
