@@ -13,30 +13,57 @@ st.set_page_config(
 )
 
 st.title("📄 LedgerLens")
+st.caption("AI Powered Invoice Processing System")
 
-st.subheader("Upload Invoice")
+left, right = st.columns([1, 1])
 
-uploaded_file = render_uploader()
+with left:
 
-if uploaded_file:
+    st.subheader("Upload Invoice")
 
-    st.image(uploaded_file, width=300)
+    uploaded_file = render_uploader()
 
-    if st.button("Upload Invoice"):
+    if uploaded_file:
 
-        with st.spinner("Uploading..."):
+        if st.button("Upload Invoice", use_container_width=True):
 
-            result = upload_file(uploaded_file)
+            with st.spinner("Uploading invoice..."):
 
-        st.success("Upload Successful!")
+                result = upload_file(uploaded_file)
 
-        st.json(result)
+            st.success("Invoice Uploaded Successfully!")
+
+            st.json(result)
+
+with right:
+
+    st.subheader("Preview")
+
+    if uploaded_file:
+
+        st.image(
+            uploaded_file,
+            use_container_width=True,
+        )
+
+    else:
+
+        st.info("Select an invoice to preview.")
 
 st.divider()
 
-st.subheader("Upload History")
-
 history = get_uploads()
+
+st.subheader("📊 Upload Statistics")
+
+st.metric(
+    label="Total Uploaded Documents",
+    value=len(history),
+)
+
+st.divider()
+
+st.subheader("📋 Upload History")
 
 st.dataframe(
     history,

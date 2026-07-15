@@ -4,9 +4,21 @@ BASE_URL = "http://127.0.0.1:8000"
 
 
 def get_uploads():
-    response = requests.get(f"{BASE_URL}/uploads")
-    response.raise_for_status()
-    return response.json()
+
+    try:
+
+        response = requests.get(
+            f"{BASE_URL}/uploads",
+            timeout=5,
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+
+    except requests.exceptions.ConnectionError:
+
+        return []
 
 
 def upload_file(uploaded_file):
@@ -22,6 +34,7 @@ def upload_file(uploaded_file):
     response = requests.post(
         f"{BASE_URL}/upload",
         files=files,
+        timeout=30,
     )
 
     response.raise_for_status()
