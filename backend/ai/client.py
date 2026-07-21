@@ -1,7 +1,7 @@
-from openai import OpenAI
+from google import genai
 
 from backend.config.settings import settings
 
-client = OpenAI(
-    api_key=settings.OPENAI_API_KEY
+client = genai.Client(
+    api_key=settings.GEMINI_API_KEY,
 )
