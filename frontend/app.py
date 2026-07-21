@@ -20,8 +20,19 @@ st.set_page_config(
     layout="wide",
 )
 
+from datetime import datetime
+
 st.title("📄 LedgerLens")
-st.caption("AI Powered Invoice Processing System")
+
+header_col1, header_col2 = st.columns([3, 1])
+
+with header_col1:
+    st.caption("AI Powered Invoice Processing System")
+
+with header_col2:
+    st.markdown(
+        f"**📅 {datetime.now().strftime('%d %b %Y')}**"
+    )
 
 # -----------------------------------
 # Load Data
@@ -96,7 +107,19 @@ if not df.empty:
         rejected = (
             df["review_status"] == "Rejected"
         ).sum()
+        processed = approved + rejected
 
+        if total_invoices > 0:
+            progress = processed / total_invoices
+        else:
+            progress = 0
+
+        st.subheader("📈 Overall Review Progress")
+        st.progress(progress)
+
+        st.caption(
+            f"{processed} of {total_invoices} invoices reviewed"
+        )
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
@@ -535,37 +558,29 @@ else:
 
             with info1:
 
-                st.write(
-                    "**Vendor:**",
-                    row.get("vendor_name", "-"),
-                )
+                st.markdown(f"""
+                **🏢 Vendor**  
+                {row.get("vendor_name", "-")}
 
-                st.write(
-                    "**Invoice Number:**",
-                    row.get("invoice_number", "-"),
-                )
+                **📄 Invoice No.**  
+                {row.get("invoice_number", "-")}
 
-                st.write(
-                    "**Invoice Date:**",
-                    row.get("invoice_date", "-"),
-                )
+                **📅 Invoice Date**  
+                {row.get("invoice_date", "-")}
 
-                st.write(
-                    "**GST Number:**",
-                    row.get("gst_number", "-"),
-                )
+                **🆔 GST Number**  
+                {row.get("gst_number", "-")}
+                    """)
 
             with info2:
 
-                st.write(
-                    "**Total Amount:**",
-                    row.get("total_amount", "-"),
-                )
+                st.markdown(f"""
+                **💰 Total Amount**  
+                ₹ {row.get("total_amount", "-")}
 
-                st.write(
-                    "**Tax Amount:**",
-                    row.get("tax_amount", "-"),
-                )
+                **💵 Tax Amount**  
+                ₹ {row.get("tax_amount", "-")}
+                """)
 
                             # -----------------------------
                 # AI Status Badge
@@ -603,81 +618,50 @@ else:
 
             upload_id = row["id"]
 
+            ai_status = row.get("ai_status", "Pending")
+            review_status = row.get("review_status", "Pending")
+
             with b1:
-
-                if st.button(
-                    "🤖 Process AI",
-                    key=f"process_{upload_id}",
-                    use_container_width=True,
-                ):
-
-                    with st.spinner(
-                        "Processing invoice..."
-                    ):
-
-                        try:
-
-                            process_invoice(
-                                upload_id
-                            )
-
-                            st.success(
-                                "AI Processing Completed"
-                            )
-
-                            st.rerun()
-
-                        except Exception as e:
-
-                            st.error(e)
+                if ai_status == "Pending":
+                    if st.button("🤖 Process AI", key=f"process_{upload_id}", use_container_width=True):
+                        with st.spinner("Processing invoice..."):
+                            try:
+                                process_invoice(upload_id)
+                                st.success("AI Processing Completed")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(e)
+                else:
+                    st.success("✅ AI Completed")
 
             with b2:
-
-                if st.button(
-                    "✅ Approve",
-                    key=f"approve_{upload_id}",
-                    use_container_width=True,
-                ):
-
-                    try:
-
-                        approve_invoice(
-                            upload_id
-                        )
-
-                        st.success(
-                            "Invoice Approved"
-                        )
-
-                        st.rerun()
-
-                    except Exception as e:
-
-                        st.error(e)
+                if review_status == "Pending":
+                    if st.button("✅ Approve", key=f"approve_{upload_id}", use_container_width=True):
+                        try:
+                            approve_invoice(upload_id)
+                            st.success("Invoice Approved")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(e)
+                elif review_status == "Approved":
+                    st.success("✔ Approved")
+                else:
+                    st.empty()
 
             with b3:
+                if review_status == "Pending":
+                    if st.button("❌ Reject", key=f"reject_{upload_id}", use_container_width=True):
+                        try:
+                            reject_invoice(upload_id)
+                            st.warning("Invoice Rejected")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(e)
+                elif review_status == "Rejected":
+                    st.error("✖ Rejected")
+                else:
+                    st.empty()
 
-                if st.button(
-                    "❌ Reject",
-                    key=f"reject_{upload_id}",
-                    use_container_width=True,
-                ):
-
-                    try:
-
-                        reject_invoice(
-                            upload_id
-                        )
-
-                        st.warning(
-                            "Invoice Rejected"
-                        )
-
-                        st.rerun()
-
-                    except Exception as e:
-
-                        st.error(e)
 
             st.divider()
 # ==========================================
@@ -777,5 +761,6 @@ with refresh_col1:
 st.divider()
 
 st.caption(
-    "LedgerLens • AI Powered Invoice Processing System"
+    f"LedgerLens • AI Powered Invoice Processing System • "
+    f"Last Refreshed: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
 )
