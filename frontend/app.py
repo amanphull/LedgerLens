@@ -129,8 +129,167 @@ with col5:
         rejected,
     )
 
+# ==========================================
+# Analytics Charts
+# ==========================================
+
 st.divider()
 
+chart_col1, chart_col2 = st.columns(2)
+
+with chart_col1:
+
+    if not df.empty and "review_status" in df.columns:
+
+        review_chart = (
+            df["review_status"]
+            .value_counts()
+            .reset_index()
+        )
+
+        review_chart.columns = [
+            "Status",
+            "Count",
+        ]
+
+        fig = px.pie(
+            review_chart,
+            names="Status",
+            values="Count",
+            title="Review Status",
+            hole=0.45,
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+        )
+# ==========================================
+# Top Vendors & Recent Activity
+# ==========================================
+
+st.divider()
+
+vendor_col, activity_col = st.columns(2)
+
+with vendor_col:
+
+    st.subheader("🏢 Top Vendors")
+
+    if (
+        not df.empty
+        and "vendor_name" in df.columns
+    ):
+
+        vendor_df = df.copy()
+
+        vendor_df["vendor_name"] = (
+            vendor_df["vendor_name"]
+            .fillna("Unknown Vendor")
+            .replace("", "Unknown Vendor")
+        )
+
+        top_vendors = (
+            vendor_df["vendor_name"]
+            .value_counts()
+            .head(5)
+            .reset_index()
+        )
+
+        top_vendors.columns = [
+            "Vendor",
+            "Invoices",
+        ]
+
+        st.dataframe(
+            top_vendors,
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    else:
+        st.info("No vendor data available.")
+with activity_col:
+
+    st.subheader("🕒 Recent Activity")
+
+    if (
+        not df.empty
+        and "upload_time" in df.columns
+    ):
+
+        activity_df = df.copy()
+
+        activity_df["upload_time"] = pd.to_datetime(
+            activity_df["upload_time"],
+            errors="coerce",
+        )
+
+        activity_df = activity_df.sort_values(
+            "upload_time",
+            ascending=False,
+        )
+
+        latest = activity_df.head(5)
+
+        for _, row in latest.iterrows():
+
+            filename = row.get(
+                "original_filename",
+                "Invoice",
+            )
+
+            status = row.get(
+                "review_status",
+                "Pending",
+            )
+
+            upload_time = row.get(
+                "upload_time",
+            )
+
+            if pd.notna(upload_time):
+                time_text = upload_time.strftime(
+                    "%d-%m-%Y %H:%M"
+                )
+            else:
+                time_text = "-"
+
+            st.write(
+                f"**{filename}**"
+            )
+            st.caption(
+                f"{status} • {time_text}"
+            )
+
+    else:
+        st.info("No recent activity.")
+with chart_col2:
+
+    if not df.empty and "ai_status" in df.columns:
+
+        ai_chart = (
+            df["ai_status"]
+            .value_counts()
+            .reset_index()
+        )
+
+        ai_chart.columns = [
+            "Status",
+            "Count",
+        ]
+
+        fig = px.bar(
+            ai_chart,
+            x="Status",
+            y="Count",
+            title="AI Processing Status",
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+        )
 f1, f2, f3 = st.columns(3)
 
 with f1:
