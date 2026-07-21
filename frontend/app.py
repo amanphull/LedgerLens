@@ -128,7 +128,25 @@ with col5:
         "❌ Rejected",
         rejected,
     )
+f1, f2, f3 = st.columns(3)
 
+with f1:
+    st.metric(
+        "💰 Total Invoice Amount",
+        f"₹ {total_invoice_amount:,.2f}",
+    )
+
+with f2:
+    st.metric(
+        "💵 Total Tax",
+        f"₹ {total_tax_amount:,.2f}",
+    )
+
+with f3:
+    st.metric(
+        "📈 Average Invoice",
+        f"₹ {average_invoice:,.2f}",
+    )
 # ==========================================
 # Analytics Charts
 # ==========================================
@@ -158,6 +176,21 @@ with chart_col1:
             values="Count",
             title="Review Status",
             hole=0.45,
+            color="Status",
+            color_discrete_map={
+                "Approved": "#2ECC71",
+                "Rejected": "#E74C3C",
+                "Pending": "#F39C12",
+            },
+        )
+        fig.update_traces(
+            textposition="inside",
+            textinfo="percent+label",
+        )
+
+        fig.update_layout(
+            showlegend=True,
+            legend_title="Status",
         )
 
         st.plotly_chart(
@@ -284,31 +317,28 @@ with chart_col2:
             x="Status",
             y="Count",
             title="AI Processing Status",
+            color="Status",
+            text="Count",
+            color_discrete_map={
+                "Completed": "#2ECC71",
+                "Pending": "#F39C12",
+                "Failed": "#E74C3C",
+            },
+        )
+        fig.update_traces(
+            textposition="outside",
         )
 
+        fig.update_layout(
+            showlegend=False,
+            xaxis_title="",
+            yaxis_title="Invoices",
+        )
         st.plotly_chart(
             fig,
             use_container_width=True,
         )
-f1, f2, f3 = st.columns(3)
 
-with f1:
-    st.metric(
-        "💰 Total Invoice Amount",
-        f"₹ {total_invoice_amount:,.2f}",
-    )
-
-with f2:
-    st.metric(
-        "💵 Total Tax",
-        f"₹ {total_tax_amount:,.2f}",
-    )
-
-with f3:
-    st.metric(
-        "📈 Average Invoice",
-        f"₹ {average_invoice:,.2f}",
-    )
 
 # -----------------------------------
 # Upload Section
@@ -368,31 +398,61 @@ with right:
 
 st.divider()
 
-# -----------------------------------
-# Search & Filters
-# -----------------------------------
+# ==========================================
+# Advanced Search & Filters
+# ==========================================
 
-search_col, filter_col = st.columns([3, 1])
 
-with search_col:
+st.subheader("🔍 Search & Filters")
+
+c1, c2, c3 = st.columns(3)
+
+with c1:
 
     search = st.text_input(
-        "🔍 Search Invoice",
-        placeholder="Search by filename...",
+        "Filename",
+        placeholder="Search filename...",
     )
 
-with filter_col:
+with c2:
 
-    status_filter = st.selectbox(
+    vendor_filter = st.text_input(
+        "Vendor",
+        placeholder="Search vendor...",
+    )
+
+with c3:
+
+    invoice_filter = st.text_input(
+        "Invoice Number",
+        placeholder="Search invoice number...",
+    )
+
+c4, c5 = st.columns(2)
+
+with c4:
+
+    ai_filter = st.selectbox(
         "AI Status",
         [
             "All",
-            "Completed",
             "Pending",
+            "Completed",
             "Failed",
         ],
     )
 
+with c5:
+
+    review_filter = st.selectbox(
+        "Review Status",
+        [
+            "All",
+            "Pending",
+            "Approved",
+            "Rejected",
+        ],
+    )
 if not df.empty:
 
     if search:
@@ -407,17 +467,52 @@ if not df.empty:
         ]
 
     if (
-        status_filter != "All"
+        vendor_filter
+        and "vendor_name" in df.columns
+    ):
+
+        df = df[
+            df["vendor_name"]
+            .fillna("")
+            .str.contains(
+                vendor_filter,
+                case=False,
+                na=False,
+            )
+        ]
+
+    if (
+        invoice_filter
+        and "invoice_number" in df.columns
+    ):
+
+        df = df[
+            df["invoice_number"]
+            .fillna("")
+            .str.contains(
+                invoice_filter,
+                case=False,
+                na=False,
+            )
+        ]
+
+    if (
+        ai_filter != "All"
         and "ai_status" in df.columns
     ):
 
         df = df[
-            df["ai_status"]
-            == status_filter
+            df["ai_status"] == ai_filter
         ]
 
-st.divider()
+    if (
+        review_filter != "All"
+        and "review_status" in df.columns
+    ):
 
+        df = df[
+            df["review_status"] == review_filter
+        ]
 st.subheader("Invoice History")
 if df.empty:
 
@@ -472,15 +567,35 @@ else:
                     row.get("tax_amount", "-"),
                 )
 
-                st.write(
-                    "**AI Status:**",
-                    row.get("ai_status", "Pending"),
-                )
+                            # -----------------------------
+                # AI Status Badge
+                # -----------------------------
 
-                st.write(
-                    "**Review Status:**",
-                    row.get("review_status", "Pending"),
-                )
+                ai_status = row.get("ai_status", "Pending")
+
+                if ai_status == "Completed":
+                    st.success(f"🤖 AI Status : {ai_status}")
+
+                elif ai_status == "Failed":
+                    st.error(f"🤖 AI Status : {ai_status}")
+
+                else:
+                    st.warning(f"🤖 AI Status : {ai_status}")
+
+                # -----------------------------
+                # Review Status Badge
+                # -----------------------------
+
+                review_status = row.get("review_status", "Pending")
+
+                if review_status == "Approved":
+                    st.success(f"✅ Review : {review_status}")
+
+                elif review_status == "Rejected":
+                    st.error(f"❌ Review : {review_status}")
+
+                else:
+                    st.warning(f"📝 Review : {review_status}")
 
             st.write("")
 
@@ -565,11 +680,10 @@ else:
                         st.error(e)
 
             st.divider()
-            # ==========================================
+# ==========================================
 # Dashboard Summary
 # ==========================================
 
-st.divider()
 
 st.subheader("📊 Dashboard Summary")
 
