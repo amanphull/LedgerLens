@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 
 from frontend.components.uploader import render_uploader
 from frontend.utils.api import (
@@ -29,7 +30,42 @@ st.caption("AI Powered Invoice Processing System")
 history = get_uploads()
 
 df = pd.DataFrame(history)
+# ==========================================
+# Financial Analytics
+# ==========================================
 
+total_invoice_amount = 0
+total_tax_amount = 0
+average_invoice = 0
+max_invoice = 0
+min_invoice = 0
+
+if not df.empty:
+
+    if "total_amount" in df.columns:
+        df["total_amount"] = (
+            pd.to_numeric(
+                df["total_amount"],
+                errors="coerce",
+            )
+            .fillna(0)
+        )
+
+        total_invoice_amount = df["total_amount"].sum()
+        average_invoice = df["total_amount"].mean()
+        max_invoice = df["total_amount"].max()
+        min_invoice = df["total_amount"].min()
+
+    if "tax_amount" in df.columns:
+        df["tax_amount"] = (
+            pd.to_numeric(
+                df["tax_amount"],
+                errors="coerce",
+            )
+            .fillna(0)
+        )
+
+        total_tax_amount = df["tax_amount"].sum()
 # -----------------------------------
 # Dashboard Metrics
 # -----------------------------------
@@ -94,6 +130,26 @@ with col5:
     )
 
 st.divider()
+
+f1, f2, f3 = st.columns(3)
+
+with f1:
+    st.metric(
+        "💰 Total Invoice Amount",
+        f"₹ {total_invoice_amount:,.2f}",
+    )
+
+with f2:
+    st.metric(
+        "💵 Total Tax",
+        f"₹ {total_tax_amount:,.2f}",
+    )
+
+with f3:
+    st.metric(
+        "📈 Average Invoice",
+        f"₹ {average_invoice:,.2f}",
+    )
 
 # -----------------------------------
 # Upload Section
