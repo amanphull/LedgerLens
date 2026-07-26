@@ -2,8 +2,9 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-from frontend.components.uploader import render_uploader
-from frontend.utils.api import (
+from components.uploader import render_uploader
+
+from utils.api import (
     approve_invoice,
     get_uploads,
     process_invoice,
