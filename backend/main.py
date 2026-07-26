@@ -26,4 +26,9 @@ def home():
         "environment": settings.ENVIRONMENT,
     }
     
-    
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy",
+        "application": "LedgerLens"
+    }
