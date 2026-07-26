@@ -263,3 +263,22 @@ AI Enthusiast | Python Developer | FastAPI | Streamlit
 # 📄 License
 
 This project is licensed under the MIT License.
+
+
+## Screenshots
+
+### Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+### Upload Invoice
+
+![Upload](screenshots/upload.png)
+
+### Invoice History
+
+![History](screenshots/history.png)
+
+### Swagger API
+
+![Swagger](screenshots/swagger.png)
