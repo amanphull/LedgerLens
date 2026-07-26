@@ -1,13 +1,23 @@
-User
-   │
-   ▼
-Upload API
-   │
-   ▼
-Upload Service
-   │
-   ├── Save Image
-   └── Save Metadata
-           │
-           ▼
-       SQLite Database
+                +----------------------+
+                |   Streamlit Frontend |
+                +----------+-----------+
+                           |
+                           | REST API
+                           v
+                +----------------------+
+                |    FastAPI Backend   |
+                +----------+-----------+
+                           |
+          +----------------+----------------+
+          |                                 |
+          v                                 v
++----------------------+         +----------------------+
+| Google Gemini AI     |         | SQLite Database      |
+| Invoice Extraction   |         | Invoice Records      |
++----------------------+         +----------------------+
+                           |
+                           v
+                  +------------------+
+                  | Uploaded Files   |
+                  | (uploads/)       |
+                  +------------------+
